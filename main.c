@@ -1,7 +1,7 @@
-volatile char *AD_MUX = (char*)0x7C; 
-volatile char *ADC_SRB = (char*)0x7B;
-volatile char *ADC_SRA = (char*)0x7A;
-volatile short *ADC_LH = (short*)0x78;
+volatile char *AD_MUX = (char*)0x7C; //ADC Multiplexer Selection Registers
+volatile char *ADC_SRB = (char*)0x7B;// ADC Control and Status Register B
+volatile char *ADC_SRA = (char*)0x7A;// ADC Control and Status Register A
+volatile short *ADC_LH = (short*)0x78;// ADC data register
 
 
 volatile char *ddr_k = (char*)0x107;
@@ -14,15 +14,16 @@ void setup() {
   *ddr_k = 0x03;
   *ddr_l = 0x01;
   *port_l = 0x00;
+  adc_read();
   init_timer();
 }
 
 void init_timer(){
-  volatile char *TCCR1_A = 0x80;
-  volatile char *TCCR1_B = 0x81;
-  volatile short *TCNT_1 = 0x84;
-  volatile short *OCR1_A = 0x88;
-  volatile char *TIMSK_1 = 0x6F;
+  volatile char *TCCR1_A = (char*)0x80;
+  volatile char *TCCR1_B = (char*)0x81;
+  volatile short *TCNT_1 = (short*)0x84;
+  volatile short *OCR1_A = (short*)0x88;
+  volatile char *TIMSK_1 = (char*)0x6F;
 
   *TCCR1_A = 0;
   *TCCR1_B = 0x0C;
@@ -34,7 +35,7 @@ void init_timer(){
 
 ISR(TIMER1_COMPA_vect){
   *port_k = 0x01; //turn on the sensor
-  adc_read();
+  *ADC_SRA |= 0x40; //start conversion 
   delay1();
   *port_k = 0x00; //turn off the sensor
 }
@@ -49,8 +50,8 @@ ISR(ADC_vect){
 }
 
 void adc_read(){
-  *AD_MUX =  0xC0;
-  *ADC_SRA = 0xDF;
+  *AD_MUX =  0xC0;//internal 2.56 ref and ADC0 is selected
+  *ADC_SRA = 0xDF;//ADC Enable, interrupt enable,prescalar-128.
 }
 
 void delay1(){
